@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Filas Bancárias Premium (Exportação)</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        /* Importa as fontes para um visual profissional e digital */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=LED&display=swap');
+        
+        @font-face {
+            font-family: 'LED';
+            src: url('https://fonts.gstatic.com/s/robotomono/v22/L0x5DF4xO_yCQ-c0GFK_Xw.woff2') format('woff2'); 
+        }
+
+        :root {
+            --primary-color: #003366; 
+            --accent-color: #ff6600; 
+            --success-color: #38c172; 
+            --bg-light: #f4f7f9; 
+            --card-bg: #ffffff; 
+            --text-color: #333333;
+            --info-color: #17a2b8; 
+            --export-color: #007bff; /* Azul para Exportação */
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            background-color: var(--bg-light);
+            color: var(--text-color);
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 51, 102, 0.15);
+            width: 95%;
+            max-width: 1200px;
+            display: grid;
+            gap: 30px;
+            /* NOVA LINHA PARA BOTÕES DE EXPORTAÇÃO */
+            grid-template-columns: 2fr 1fr; 
+            grid-template-areas: 
+                "header header"
+                "painel-chamada fila"
+                "estatisticas estatisticas" 
+                "exportacao exportacao" /* NOVA ÁREA */
+                "botoes botoes";
+        }
+        
+        /* CABEÇALHO E RELÓGIO */
+        .header-content {
+            grid-area: header;
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 15px;
+        }
+        
+        /* 1. PAINEL DE CHAMADA */
+        .painel-chamada {
+            grid-area: painel-chamada;
+            background-color: #111; 
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* 2. FILAS DE ESPERA */
+        .fila-espera {
+            grid-area: fila;
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 4. ESTATÍSTICAS */
+        .estatisticas {
+            grid-area: estatisticas;
+            background-color: var(--bg-light);
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        
+        /* 5. ÁREA DE EXPORTAÇÃO (NOVA) */
+        .area-exportacao {
+            grid-area: exportacao;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .area-exportacao button {
+            background-color: var(--export-color);
+            color: white;
+            padding: 12px 20px;
+            font-weight: 700;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .area-exportacao button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 3. BOTÕES DE GERENCIAMENTO */
+        .botoes-gerenciamento {
+            grid-area: botoes;
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background-color: var(--bg-light);
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        /* ESTILOS INTERNOS (Reduzidos para concisão, mas presentes na versão anterior) */
+        .header-content h1 { color: var(--primary-color); margin-bottom: 8px; font-weight: 300; font-size: 2.2em; }
+        #relogio-digital { font-family: 'LED', monospace; font-size: 1.6em; color: #555; background-color: #e0e6eb; padding: 8px 15px; border-radius: 5px; display: inline-block; letter-spacing: 2px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); }
+        h2 { font-size: 1.4em; color: var(--primary-color); margin-top: 0; font-weight: 700; }
+        .painel-chamada h2 { color: #ccc; border-bottom: 1px solid #444; margin-bottom: 20px; }
+        .display-chamada { display: flex; justify-content: space-around; align-items: center; }
+        .display-item { flex-grow: 1; margin: 0 15px; padding: 20px 0; border-radius: 5px; background-color: #000; border: 1px solid #333; }
+        .display-item h3 { font-size: 1.2em; margin-bottom: 10px; color: var(--accent-color); font-weight: 300; }
+        .numero-display { font-family: 'LED', monospace; font-size: 6.5em; font-weight: bold; color: #ff4500; text-shadow: 0 0 15px rgba(255, 69, 0, 0.8); min-height: 100px; display: flex; align-items: center; justify-content: center; }
+        .painel-chamada.flash .numero-display { animation: flash-display 0.3s 6; }
+        @keyframes flash-display { 0%, 100% { color: #ff4500; } 50% { color: #fff; } }
+        .fila-content { max-height: 400px; overflow-y: auto; }
+        .fila-list { list-style: none; padding: 0; margin-bottom: 20px; }
+        .fila-list li { padding: 10px 12px; margin-bottom: 6px; border-radius: 6px; font-weight: 500; display: flex; justify-content: space-between; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+        .fila-preferencial h3 { color: var(--accent-color); font-weight: 700; }
+        .fila-comum h3 { color: var(--primary-color); font-weight: 700; }
+        .fila-list.preferencial li { background-color: #fffaf5; border-left: 5px solid var(--accent-color); }
+        .fila-list.comum li { background-color: #f5faff; border-left: 5px solid var(--primary-color); }
+        .card-stat { flex-grow: 1; background-color: var(--card-bg); padding: 15px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); border-top: 3px solid var(--info-color); }
+        .card-stat h3 { font-size: 1.1em; color: var(--text-color); margin-bottom: 5px; font-weight: 400; }
+        .card-stat .numero { font-size: 2.2em; font-weight: 700; color: var(--primary-color); font-family: 'LED', monospace; }
+        #total-a-chamar .numero { color: var(--accent-color); }
+        #total-concluidos .numero { color: var(--success-color); }
+        .grupo-botoes { display: flex; flex-direction: column; align-items: center; padding: 15px 10px; }
+        .grupo-botoes h3 { color: var(--primary-color); margin-bottom: 15px; font-size: 1.2em; }
+        button { padding: 14px 25px; margin: 6px; border: none; border-radius: 7px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1); }
+        button:active { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); transform: translateY(2px); }
+        .btn-gerar-preferencial { background-color: var(--accent-color); color: white; }
+        .btn-gerar-preferencial:hover { background-color: #e65c00; }
+        .btn-gerar-comum { background-color: var(--primary-color); color: white; }
+        .btn-gerar-comum:hover { background-color: #00264d; }
+        .btn-chamar-proximo { background-color: var(--success-color); color: white; }
+        .btn-chamar-proximo:hover { background-color: #2e9f5e; }
+        .btn-rechamar { background-color: #888; color: white; }
+        .btn-rechamar:hover { background-color: #666; }
+
+        /* MEDIA QUERIES PARA RESPONSIVIDADE */
+        @media (max-width: 800px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "painel-chamada"
+                    "estatisticas" 
+                    "fila"
+                    "exportacao" /* Ajuste na ordem */
+                    "botoes";
+                padding: 15px;
+            }
+            .header-content h1 { font-size: 1.5em; }
+            #relogio-digital { font-size: 1.2em; display: block; margin-top: 5px; padding: 5px; }
+            .display-chamada { flex-direction: column; }
+            .display-item { width: 90%; margin: 10px 0; }
+            .numero-display { font-size: 3.5em; min-height: 70px; }
+            .fila-content { max-height: 200px; }
+            .estatisticas { flex-direction: column; gap: 10px; }
+            .grupo-botoes { width: 100%; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px; }
+            .botoes-gerenciamento { flex-direction: column; padding: 10px; }
+            .area-exportacao { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="header-content">
+            <h1>Sistema de Gerenciamento de Filas - Banco XYZ</h1>
+            <div id="relogio-digital">Aguardando Hora...</div> 
+        </div>
+
+        <div class="painel-chamada" id="painel-chamada">
+            <h2>Próximo Cliente a Ser Atendido</h2>
+            <div class="display-chamada">
+                <div class="display-item">
+                    <h3>SENHA</h3>
+                    <div class="numero-display" id="senha-display">--</div>
+                </div>
+                <div class="display-item">
+                    <h3>GUICHÊ</h3>
+                    <div class="numero-display" id="guiche-display">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fila-espera">
+            <h2>Filas Ativas</h2>
+            <div class="fila-content">
+                <div class="fila-preferencial">
+                    <h3>Preferencial (P)</h3>
+                    <ul class="fila-list preferencial" id="fila-preferencial"></ul>
+                </div>
+                <div class="fila-comum">
+                    <h3>Comum (C)</h3>
+                    <ul class="fila-list comum" id="fila-comum"></ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="estatisticas">
+            <div class="card-stat" id="total-concluidos">
+                <h3>Total de Atendimentos Concluídos</h3>
+                <div class="numero" id="contador-concluidos">0</div>
+            </div>
+            
+            <div class="card-stat" id="total-a-chamar">
+                <h3>Total de Clientes a Chamar</h3>
+                <div class="numero" id="contador-a-chamar">0</div>
+            </div>
+        </div>
+        
+        <div class="area-exportacao">
+            <button onclick="exportarParaPDF()">📄 Exportar Relatório (PDF)</button>
+            <button onclick="exportarParaExcel()">📊 Exportar Relatório (Excel)</button>
+        </div>
+
+        <div class="botoes-gerenciamento">
+            
+            <div class="grupo-botoes">
+                <h3>Impressão de Senha</h3>
+                <button id="gerar-preferencial" class="btn-gerar-preferencial">👵 Preferencial</button>
+                <button id="gerar-comum" class="btn-gerar-comum">👤 Comum</button>
+            </div>
+            
+            <div class="grupo-botoes">
+                <h3>Controle Guichê 1</h3>
+                <button data-guiche="1" class="btn-chamar-proximo">➡️ Chamar Próximo</button>
+                <button data-guiche="1" class="btn-rechamar">🔄 Rechamar</button>
+            </div>
+            
+            <div class="grupo-botoes">
+                <h3>Controle Guichê 2</h3>
+                <button data-guiche="2" class="btn-chamar-proximo">➡️ Chamar Próximo</button>
+                <button data-guiche="2" class="btn-rechamar">🔄 Rechamar</button>
+            </div>
+
+        </div>
+    </div>
+    
+    <script>
+        // ------------------ ESTADO DO SISTEMA ------------------
+        let proximaComum = 1;
+        let proximaPreferencial = 1;
+        
+        let filaComum = []; 
+        let filaPreferencial = []; 
+        let totalConcluidos = 0; 
+        
+        // NOVO: Histórico para exportação. Armazena senhas já chamadas.
+        let historicoAtendidos = []; 
+
+        // Rastreia senhas em atendimento (Guichês)
+        let guichesEmAtendimento = {
+            1: { senha: null, tipo: null, horaChamada: null },
+            2: { senha: null, tipo: null, horaChamada: null },
+        };
+
+        // ------------------ ELEMENTOS DO DOM ------------------
+        const relogioDigital = document.getElementById('relogio-digital');
+        const senhaDisplay = document.getElementById('senha-display');
+        const guicheDisplay = document.getElementById('guiche-display');
+        const painelChamada = document.getElementById('painel-chamada');
+        
+        const listaComum = document.getElementById('fila-comum');
+        const listaPreferencial = document.getElementById('fila-preferencial');
+        
+        const contadorConcluidosElement = document.getElementById('contador-concluidos'); 
+        const contadorAChamarElement = document.getElementById('contador-a-chamar');     
+
+        // ------------------ FUNÇÕES DE CONTADORES E UTILS ------------------
+        
+        function formatarSenha(tipo, numero) {
+            return `${tipo}-${numero}`;
+        }
+
+        function atualizarContadores() {
+            contadorConcluidosElement.textContent = totalConcluidos;
+            const totalAChamar = filaComum.length + filaPreferencial.length;
+            contadorAChamarElement.textContent = totalAChamar;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const pad = (num) => String(num).padStart(2, '0');
+            const dateString = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
+            const timeString = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            relogioDigital.textContent = `Data: ${dateString} | Hora: ${timeString}`;
+        }
+        
+        function renderizarFila() {
+            listaPreferencial.innerHTML = '';
+            filaPreferencial.forEach(n => {
+                const li = document.createElement('li');
+                li.textContent = formatarSenha('P', n);
+                listaPreferencial.appendChild(li);
+            });
+
+            listaComum.innerHTML = '';
+            filaComum.forEach(n => {
+                const li = document.createElement('li');
+                li.textContent = formatarSenha('C', n);
+                listaComum.appendChild(li);
+            });
+            
+            atualizarContadores();
+        }
+
+        // ------------------ LÓGICA DE GERAÇÃO E CHAMADA ------------------
+
+        function gerarSenha(tipo) {
+            let novaSenha;
+            if (tipo === 'P') {
+                novaSenha = proximaPreferencial++;
+                filaPreferencial.push(novaSenha);
+            } else { 
+                novaSenha = proximaComum++;
+                filaComum.push(novaSenha);
+            }
+            alert(`Sua senha é: ${formatarSenha(tipo, novaSenha)}. Aguarde.`);
+            renderizarFila();
+        }
+
+        function realizarChamada(senhaFormatada, guiche) {
+            senhaDisplay.textContent = senhaFormatada;
+            guicheDisplay.textContent = guiche;
+            painelChamada.classList.remove('flash');
+            setTimeout(() => { painelChamada.classList.add('flash'); }, 10); 
+            
+            if ('speechSynthesis' in window) {
+                const mensagem = new SpeechSynthesisUtterance(`Senha ${senhaFormatada}, dirija-se ao Guichê ${guiche}.`);
+                mensagem.lang = 'pt-BR';
+                mensagem.rate = 0.9; 
+                mensagem.pitch = 1.1; 
+                window.speechSynthesis.speak(mensagem);
+            }
+        }
+        
+        function chamarProximo(guicheId) {
+            let senhaChamada = null;
+            let tipoChamado = null;
+            
+            // Prioridade: Preferencial > Comum
+            if (filaPreferencial.length > 0) {
+                senhaChamada = filaPreferencial.shift();
+                tipoChamado = 'P';
+            } 
+            else if (filaComum.length > 0) {
+                senhaChamada = filaComum.shift();
+                tipoChamado = 'C';
+            }
+            
+            if (senhaChamada !== null) {
+                totalConcluidos++; 
+                const agora = new Date();
+                const senhaFormatada = formatarSenha(tipoChamado, senhaChamada);
+                
+                // Adiciona a senha anterior ao histórico (Se houver)
+                const atendimentoAnterior = guichesEmAtendimento[guicheId];
+                if (atendimentoAnterior.senha !== null) {
+                    historicoAtendidos.push({
+                        senha: formatarSenha(atendimentoAnterior.tipo, atendimentoAnterior.senha),
+                        guiche: guicheId,
+                        status: 'Concluído',
+                        hora: atendimentoAnterior.horaChamada 
+                    });
+                }
+                
+                // Atualiza o estado do guichê para a nova senha
+                guichesEmAtendimento[guicheId].senha = senhaChamada;
+                guichesEmAtendimento[guicheId].tipo = tipoChamado; 
+                guichesEmAtendimento[guicheId].horaChamada = agora.toLocaleTimeString('pt-BR'); 
+
+                realizarChamada(senhaFormatada, guicheId);
+                renderizarFila();
+            } else {
+                alert(`Guichê ${guicheId}: Não há clientes nas filas para chamar.`);
+                senhaDisplay.textContent = 'VAZIO';
+                guicheDisplay.textContent = '--';
+            }
+        }
+        
+        function rechamarSenha(guicheId) {
+            const atendimento = guichesEmAtendimento[guicheId];
+            if (atendimento.senha !== null) {
+                const senhaFormatada = formatarSenha(atendimento.tipo, atendimento.senha);
+                realizarChamada(senhaFormatada, guicheId);
+            } else {
+                alert(`Guichê ${guicheId}: Não há senha em atendimento para rechamar.`);
+            }
+        }
+        
+        // ------------------ FUNÇÕES DE EXPORTAÇÃO (NOVAS) ------------------
+
+        function obterDadosRelatorio() {
+            // 1. Atendimentos em Andamento (Guichês Atuais)
+            const emAndamento = Object.entries(guichesEmAtendimento)
+                .filter(([, data]) => data.senha !== null)
+                .map(([guicheId, data]) => ({
+                    Senha: formatarSenha(data.tipo, data.senha),
+                    Tipo: data.tipo === 'P' ? 'Preferencial' : 'Comum',
+                    Guichê: guicheId,
+                    Status: 'Em Atendimento',
+                    Hora: data.horaChamada || '--',
+                    Fila: '--'
+                }));
+            
+            // 2. Senhas nas Filas (A Chamar)
+            const aChamarPref = filaPreferencial.map(n => ({
+                Senha: formatarSenha('P', n),
+                Tipo: 'Preferencial',
+                Guichê: '--',
+                Status: 'Aguardando Chamada',
+                Hora: '--',
+                Fila: 'Preferencial'
+            }));
+
+            const aChamarComum = filaComum.map(n => ({
+                Senha: formatarSenha('C', n),
+                Tipo: 'Comum',
+                Guichê: '--',
+                Status: 'Aguardando Chamada',
+                Hora: '--',
+                Fila: 'Comum'
+            }));
+
+            // 3. Histórico de Atendimentos Concluídos
+            const concluidos = historicoAtendidos.map(item => ({
+                Senha: item.senha,
+                Tipo: item.senha.startsWith('P') ? 'Preferencial' : 'Comum',
+                Guichê: item.guiche,
+                Status: 'Concluído',
+                Hora: item.hora,
+                Fila: '--'
+            }));
+
+            // Combina todos os dados para o relatório
+            return [
+                ...emAndamento,
+                ...aChamarPref,
+                ...aChamarComum,
+                ...concluidos
+            ];
+        }
+
+        // Exportar para PDF
+        function exportarParaPDF() {
+            if (typeof window.jsPDF === 'undefined') {
+                alert('A biblioteca jsPDF não foi carregada. Verifique sua conexão ou os links CDN.');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const data = obterDadosRelatorio();
+            
+            // Converte a lista de objetos para um array de arrays (formato da tabela PDF)
+            const headers = [["SENHA", "TIPO", "GUICHÊ", "STATUS", "HORA"]];
+            const body = data.map(item => [
+                item.Senha, 
+                item.Tipo, 
+                item.Guichê, 
+                item.Status, 
+                item.Hora
+            ]);
+            
+            doc.text("Relatório de Atendimentos - Banco XYZ", 10, 10);
+            doc.autoTable({
+                startY: 20,
+                head: headers,
+                body: body,
+                theme: 'striped'
+            });
+
+            doc.save(`Relatorio_Filas_${new Date().toLocaleDateString()}.pdf`);
+            alert('Relatório PDF gerado com sucesso!');
+        }
+
+        // Exportar para Excel
+        function exportarParaExcel() {
+            if (typeof window.XLSX === 'undefined') {
+                alert('A biblioteca XLSX não foi carregada. Verifique sua conexão ou os links CDN.');
+                return;
+            }
+
+            const data = obterDadosRelatorio();
+            
+            // Cria a planilha a partir dos dados JSON
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "RelatorioAtendimentos");
+            
+            // Gera e salva o arquivo
+            XLSX.writeFile(workbook, `Relatorio_Filas_${new Date().toLocaleDateString()}.xlsx`);
+            alert('Relatório Excel gerado com sucesso!');
+        }
+
+
+        // ------------------ EVENT LISTENERS ------------------
+        
+        document.getElementById('gerar-preferencial').addEventListener('click', () => gerarSenha('P'));
+        document.getElementById('gerar-comum').addEventListener('click', () => gerarSenha('C'));
+
+        document.querySelectorAll('.btn-chamar-proximo').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const guiche = e.target.dataset.guiche;
+                chamarProximo(guiche);
+            });
+        });
+
+        document.querySelectorAll('.btn-rechamar').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const guiche = e.target.dataset.guiche;
+                rechamarSenha(guiche);
+            });
+        });
+
+        // ------------------ INICIALIZAÇÃO ------------------
+        
+        updateClock();
+        setInterval(updateClock, 1000); 
+
+        // Inicializa a tabela do PDF (necessário para a função autoTable)
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js';
+        document.head.appendChild(script);
+
+        renderizarFila();
+    </script>
+</body>
+</html>
