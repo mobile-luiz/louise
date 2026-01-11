@@ -1,0 +1,430 @@
+:root {
+    --shopee-orange: #ee4d2d; 
+    --shopee-orange-dark: #d73211;
+    --shopee-bg: #f5f5f5;
+    --white: #ffffff;
+    --text-primary: #222222;
+    --text-secondary: #757575;
+    --border-color: #e8e8e8;
+    
+    /* CORES DA ESCALA */
+    --work-bg: #28a745;    /* Verde */
+    --work-text: #ffffff;
+    --off-bg: #dc3545;     /* Vermelho */
+    --off-text: #ffffff;
+}
+
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Roboto', sans-serif; 
+}
+
+body { 
+    background-color: var(--shopee-bg);
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+    padding: 20px;
+}
+
+.container { 
+    background: var(--white); 
+    padding: 32px; 
+    border-radius: 16px; 
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); 
+    width: 100%; 
+    max-width: 500px; 
+    transition: max-width 0.4s ease;
+}
+
+.container.dashboard-mode { max-width: 800px; }
+
+.header-section { text-align: center; margin-bottom: 32px; }
+.subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-top: 5px; }
+.dashboard-header { text-align: left; margin-bottom: 20px; }
+
+h2 { color: var(--text-primary); font-size: 1.5rem; font-weight: 700; }
+
+.input-group { margin-bottom: 20px; }
+label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
+
+input[type="text"], select { 
+    width: 100%; 
+    padding: 14px; 
+    border: 1.5px solid var(--border-color); 
+    border-radius: 8px; 
+    font-size: 1rem; 
+    transition: all 0.2s;
+}
+
+.btn {
+    width: 100%; 
+    padding: 14px; 
+    border: none; 
+    border-radius: 8px;
+    font-size: 1rem; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: all 0.2s;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 10px;
+}
+
+.btn-primary { background-color: var(--shopee-orange); color: white; }
+.btn-pdf { background-color: #333; color: white; }
+.btn-outline { background: transparent; border: 1.5px solid var(--border-color); color: var(--text-secondary); }
+
+.action-buttons {
+    margin-top: 30px; 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px;
+}
+
+#dashboard-area { display: none; }
+
+.user-info-grid {
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px; 
+    margin-bottom: 30px; 
+    padding: 20px;
+    background: #fcfcfc; 
+    border-radius: 12px; 
+    border: 1px solid var(--border-color);
+}
+
+.calendar-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+    flex-wrap: wrap; 
+    gap: 10px; 
+}
+
+.calendar-header h3 { font-size: 1.1rem; }
+#month-select { width: auto; padding: 8px 12px; }
+
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.day-name { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; text-align: center; padding-bottom: 10px; }
+
+.day-cell { 
+    aspect-ratio: 1 / 1; 
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 10px;
+    font-size: 0.9rem; 
+    background: #fff; 
+    border: 1px solid #f0f0f0;
+}
+
+.trabalho { background-color: var(--work-bg) !important; color: var(--work-text) !important; font-weight: bold; }
+.folga { background-color: var(--off-bg) !important; color: var(--off-text) !important; font-weight: 800; border: 1px solid #b21f2d; }
+
+.day-status { font-size: 0.65rem; margin-top: 4px; }
+.past-day { opacity: 0.7; }
+
+#message { margin-top: 15px; text-align: center; font-size: 0.9rem; }
+
+.spinner {
+    width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 500px) {
+    .container { padding: 20px; border-radius: 0; }
+    .day-status { font-size: 0.55rem; }
+    .action-buttons { grid-template-columns: 1fr; }
+}
+
+
+
+/* Estilos para mostrar informações das folgas */
+.folgas-info-container {
+    margin-bottom: 20px;
+}
+
+.folgas-info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #ffc107;
+}
+
+.folgas-info-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.folgas-info-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.info-icon {
+    font-size: 1.2rem;
+}
+
+.folgas-info-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.folga-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.folga-item.dominical {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.folga-item:not(.dominical) {
+    border-left-color: #28a745;
+}
+
+.folga-tipo {
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    min-width: 70px;
+    text-align: center;
+}
+
+.folga-tipo.dominical {
+    background: #dc3545;
+    color: white;
+}
+
+.folga-tipo:not(.dominical) {
+    background: #28a745;
+    color: white;
+}
+
+.folga-desc {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.folga-dias, .folga-data {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.folga-nota {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fff8e1;
+    border-radius: 6px;
+    border-left: 3px solid #ffc107;
+    font-size: 0.85rem;
+    color: #856404;
+}
+
+/* Badge para folga extra no calendário */
+.folga-extra-badge {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    background: #dc3545;
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    z-index: 5;
+}
+
+@media (max-width: 768px) {
+    .folgas-info-card {
+        padding: 15px;
+    }
+    
+    .folga-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .folga-tipo {
+        align-self: flex-start;
+    }
+    
+    .folga-desc {
+        font-size: 0.9rem;
+    }
+    
+    .folga-extra-badge {
+        font-size: 0.5rem;
+        padding: 1px 4px;
+    }
+}
+
+
+/* Adicione ao final do seu estilo CSS */
+.folga-extra-badge.conflito {
+    background: #ffc107 !important;
+    color: #000 !important;
+    border: 1px solid #856404;
+}
+
+.folgas-info-card.alerta {
+    border-left: 4px solid #dc3545;
+    background: #fff5f5;
+}
+
+.folga-tipo.dominical.alerta {
+    background: #ffc107 !important;
+    color: #000 !important;
+}
+
+.folga-alerta {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 0.9rem;
+    color: #856404;
+    margin-top: 12px;
+    line-height: 1.4;
+}
+
+.regra-info {
+    background: #e7f3ff;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    color: #004085;
+    margin-top: 12px;
+    border-left: 3px solid #0056b3;
+}
+
+
+.folga-extra-badge.conflito {
+    background: #ffc107 !important;
+    color: #000 !important;
+    font-weight: bold;
+    border: 2px solid #856404;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.folgas-info-card.alerta {
+    border-left: 4px solid #dc3545;
+    background: #fff5f5;
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.1);
+}
+
+.folga-tipo.dominical.alerta {
+    background: #ffc107 !important;
+    color: #000 !important;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+.folga-alerta {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.9rem;
+    color: #856404;
+    margin-top: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.regra-info {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 0.85rem;
+    color: #155724;
+    margin-top: 12px;
+    font-weight: 500;
+}
+
+
+/* ESTILOS EXCLUSIVOS PARA O MOMENTO DO PDF */
+.is-printing .dashboard-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important; /* Força 3 colunas como no PC */
+    gap: 20px !important;
+}
+
+.is-printing .user-info h2 {
+    font-size: 1.6rem !important; /* Nome do colaborador em destaque */
+}
+
+.is-printing .calendar-grid {
+    grid-template-columns: repeat(7, 1fr) !important; /* Força os 7 dias da semana */
+    gap: 8px !important;
+}
+
+.is-printing .day-number {
+    font-size: 1.3rem !important; /* Números legíveis no PDF */
+}
+
+.is-printing .day-status {
+    font-size: 0.7rem !important; /* Texto TRAB/FOLGA visível */
+}
+
+.is-printing .day-cell {
+    min-height: 90px !important; /* Garante o formato quadrado */
+}
+
+/* Esconde elementos desnecessários no PDF */
+.is-printing .actions-footer, 
+.is-printing #month-select {
+    display: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
